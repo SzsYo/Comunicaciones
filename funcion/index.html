@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskTeam | Gestión colaborativa de proyectos</title>
+  <meta name="description" content="TaskTeam: tablero Kanban colaborativo para gestionar tareas, comunicar avances y dar retroalimentación constructiva." />
+  <!-- Hoja de estilos propia: se eligió CSS nativo (sin CDN) para que la app funcione offline y con control total del diseño -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ============================ ENCABEZADO ============================
+         Muestra la identidad del equipo y un resumen de avance del proyecto.
+         El resumen visibiliza el progreso de TODOS, lo que fomenta la
+         transparencia y el sentido de equipo. -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand__logo" aria-hidden="true">TT</div>
+        <div>
+          <h1 class="brand__title">TaskTeam</h1>
+          <p class="brand__subtitle">Tablero Kanban de trabajo colaborativo</p>
+        </div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-block__meta">
+          <span id="progressLabel">0% completado</span>
+          <span id="progressCount" class="muted">0 de 0 tareas</span>
+        </div>
+        <div class="progress-bar" role="progressbar" aria-labelledby="progressLabel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+          <div class="progress-bar__fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+
+      <!-- ======================= FORMULARIO DE NUEVA TAREA =======================
+           Punto único de entrada de trabajo: cada tarea nace con un responsable
+           explícito y una fecha límite. Asignar dueño evita la ambigüedad de
+           "alguien lo hará" y es la base de la responsabilidad compartida. -->
+      <section class="panel panel--form" aria-labelledby="formTitle">
+        <h2 id="formTitle" class="panel__title">Nueva tarea</h2>
+        <p class="panel__hint">Define el trabajo y asígnalo a un integrante del equipo.</p>
+
+        <form id="taskForm" class="form" novalidate>
+          <div class="field">
+            <label for="taskTitle">Título de la tarea</label>
+            <input type="text" id="taskTitle" name="titulo" maxlength="90" placeholder="Ej: Diseñar vista de reportes" required />
+          </div>
+
+          <div class="field">
+            <label for="taskDesc">Descripción</label>
+            <textarea id="taskDesc" name="descripcion" rows="3" maxlength="280" placeholder="¿Qué se debe hacer y con qué criterio de aceptación?"></textarea>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="taskAssignee">Responsable</label>
+              <select id="taskAssignee" name="responsable" required>
+                <option value="" selected disabled>Selecciona un integrante</option>
+                <option value="Miguel Angel Rojas">Miguel Angel Rojas</option>
+                <option value="Brandon Garcia">Brandon Garcia</option>
+                <option value="Samuel Mora Velez">Samuel Mora Velez</option>
+                <option value="Equipo TaskTeam">Equipo TaskTeam (todos)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="taskPriority">Prioridad</label>
+              <select id="taskPriority" name="prioridad">
+                <option value="Baja">Baja</option>
+                <option value="Media" selected>Media</option>
+                <option value="Alta">Alta</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="taskDue">Fecha límite</label>
+            <input type="date" id="taskDue" name="fechaLimite" />
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--block">
+            <span aria-hidden="true">＋</span> Agregar al tablero
+          </button>
+        </form>
+      </section>
+
+      <!-- ============================== TABLERO KANBAN ==============================
+           Tres columnas que representan el flujo acordado por el equipo:
+           Por Hacer -> En Progreso -> Revisión/Completado.
+           Ver el estado real del trabajo reduce malentendidos y permite
+           reaccionar a tiempo como equipo. -->
+      <section class="board" aria-label="Tablero Kanban">
+
+        <article class="column column--todo" data-column="todo">
+          <header class="column__header">
+            <div>
+              <h2 class="column__title">Por Hacer</h2>
+              <p class="column__desc">Trabajo acordado y pendiente de iniciar.</p>
+            </div>
+            <span class="column__count" id="count-todo" aria-label="Tareas en Por Hacer">0</span>
+          </header>
+          <div class="column__body" id="list-todo" data-dropzone="todo" role="list" aria-label="Tareas por hacer"></div>
+        </article>
+
+        <article class="column column--progress" data-column="progress">
+          <header class="column__header">
+            <div>
+              <h2 class="column__title">En Progreso</h2>
+              <p class="column__desc">Trabajo en curso, con avances comunicados.</p>
+            </div>
+            <span class="column__count" id="count-progress" aria-label="Tareas en progreso">0</span>
+          </header>
+          <div class="column__body" id="list-progress" data-dropzone="progress" role="list" aria-label="Tareas en progreso"></div>
+        </article>
+
+        <article class="column column--review" data-column="review">
+          <header class="column__header">
+            <div>
+              <h2 class="column__title">Revisión / Completado</h2>
+              <p class="column__desc">Se evalúa con retroalimentación antes de cerrar.</p>
+            </div>
+            <span class="column__count" id="count-review" aria-label="Tareas en revisión">0</span>
+          </header>
+          <div class="column__body" id="list-review" data-dropzone="review" role="list" aria-label="Tareas en revisión o completadas"></div>
+        </article>
+
+      </section>
+    </main>
+
+    <!-- ============================== CRÉDITOS OBLIGATORIOS ============================== -->
+    <footer class="app-footer">
+      <p class="credits">
+        Desarrollado por el equipo TaskTeam: Miguel Angel Rojas, Brandon Garcia y Samuel Mora Velez.
+      </p>
+    </footer>
+  </div>
+
+  <!-- ============================== MODAL: COMENTARIOS ==============================
+       Espacio de comunicación asertiva: cada comentario queda registrado junto a
+       la tarea, con autor y fecha, para que el diálogo sea claro y trazable. -->
+  <div class="modal" id="commentModal" role="dialog" aria-modal="true" aria-labelledby="commentModalTitle" hidden>
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__card">
+      <header class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Comunicación asertiva</p>
+          <h3 id="commentModalTitle">Comentarios de la tarea</h3>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal aria-label="Cerrar ventana de comentarios">✕</button>
+      </header>
+
+      <p class="modal__task" id="commentTaskTitle">—</p>
+
+      <h4 class="modal__subtitle">Historial</h4>
+      <ul class="comment-list" id="commentList" aria-live="polite"></ul>
+
+      <form id="commentForm" class="form">
+        <div class="field">
+          <label for="commentAuthor">Quién comenta</label>
+          <select id="commentAuthor" required>
+            <option value="Miguel Angel Rojas">Miguel Angel Rojas</option>
+            <option value="Brandon Garcia">Brandon Garcia</option>
+            <option value="Samuel Mora Velez">Samuel Mora Velez</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="commentText">Comentario</label>
+          <textarea id="commentText" rows="3" maxlength="400" placeholder="Comparte avances, dudas o bloqueos de forma concreta y respetuosa." required></textarea>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Publicar comentario</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================== MODAL: EVALUACIÓN ==============================
+       Retroalimentación constructiva: antes de cerrar una tarea el equipo deja
+       una nota con logros y oportunidades de mejora. Convierte la revisión en
+       aprendizaje y previene conflictos por expectativas no dichas. -->
+  <div class="modal" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle" hidden>
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__card">
+      <header class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Retroalimentación constructiva</p>
+          <h3 id="reviewModalTitle">Evaluar tarea</h3>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal aria-label="Cerrar ventana de evaluación">✕</button>
+      </header>
+
+      <p class="modal__task" id="reviewTaskTitle">—</p>
+
+      <div class="tip">
+        <strong>Cómo dar buen feedback:</strong>
+        <ul>
+          <li>Describe hechos concretos, no juicios sobre la persona.</li>
+          <li>Reconoce lo que funcionó bien.</li>
+          <li>Propón un ajuste o próximo paso alcanzable.</li>
+        </ul>
+      </div>
+
+      <form id="reviewForm" class="form">
+        <div class="field">
+          <label for="reviewAuthor">Quién evalúa</label>
+          <select id="reviewAuthor" required>
+            <option value="Miguel Angel Rojas">Miguel Angel Rojas</option>
+            <option value="Brandon Garcia">Brandon Garcia</option>
+            <option value="Samuel Mora Velez">Samuel Mora Velez</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="reviewText">Nota de retroalimentación</label>
+          <textarea id="reviewText" rows="4" maxlength="500" placeholder="Ej: La entrega cumple el criterio acordado. Sugerencia: documentar los pasos para que el equipo pueda replicarlo." required></textarea>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Guardar evaluación y cerrar tarea</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirmación de eliminación (acción destructiva) -->
+  <div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__card modal__card--compact">
+      <h3 id="confirmTitle">Eliminar tarea</h3>
+      <p class="modal__task" id="confirmText">Esta acción no se puede deshacer.</p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" data-close-modal>Cancelar</button>
+        <button type="button" class="btn btn--danger" id="confirmDelete">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de avisos breves (feedback del sistema al usuario) -->
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
